@@ -1,0 +1,34 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job               count
+--------------  -------
+all                   1
+fastp_qc              1
+multiqc_report        1
+total                 3
+
+Select jobs to execute...
+
+[Wed Sep 24 00:19:32 2025]
+rule fastp_qc:
+    input: data/raw/SRR14771190_1.fastq.gz, data/raw/SRR14771190_2.fastq.gz
+    output: data/processed/SRR14771190_1.clean.fastq.gz, data/processed/SRR14771190_2.clean.fastq.gz, data/processed/SRR14771190.merged.fastq.gz, results/qc/fastp/SRR14771190.html, results/qc/fastp/SRR14771190.json
+    log: results/logs/fastp/SRR14771190.log
+    jobid: 2
+    reason: Missing output files: results/qc/fastp/SRR14771190.json
+    wildcards: sample=SRR14771190
+    threads: 4
+    resources: tmpdir=/tmp
+
+Waiting at most 5 seconds for missing files.
+MissingOutputException in rule fastp_qc in file /home/mjonir/f/projects/mosses/workflow/Snakefile, line 19:
+Job 2  completed successfully, but some output files are missing. Missing files after 5 seconds. This might be due to filesystem latency. If that is the case, consider to increase the wait time with --latency-wait:
+data/processed/SRR14771190.merged.fastq.gz
+Removing output files of failed job fastp_qc since they might be corrupted:
+data/processed/SRR14771190_1.clean.fastq.gz, data/processed/SRR14771190_2.clean.fastq.gz, results/qc/fastp/SRR14771190.html, results/qc/fastp/SRR14771190.json
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2025-09-24T001931.823683.snakemake.log

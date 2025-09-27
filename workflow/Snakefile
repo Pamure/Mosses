@@ -1,0 +1,57 @@
+# SNAKEFILE unlike your ex yeh saanp sab batata hai bhai
+
+# example
+SAMPLES = ["SRR14771190"]
+
+# --- 2. The Workflow Rules ---
+
+# This is the final output file we want the pipeline to create.
+# It's good practice to put the 'all' rule at the top.
+rule all:
+    input:
+        "results/qc/multiqc_report.html"
+
+# This rule cleans, filters, and merges the raw paired-end reads using fastp.
+rule fastp_qc:
+    input:
+        r1 = "data/raw/{sample}_1.fastq.gz",
+        r2 = "data/raw/{sample}_2.fastq.gz"
+    output:
+        # We need to create directories for our output files.
+        # Snakemake can do this for us automatically.
+        r1_clean = "data/processed/{sample}_1.clean.fastq.gz",
+        r2_clean = "data/processed/{sample}_2.clean.fastq.gz",
+        merged = "data/processed/{sample}.merged.fastq.gz",
+        html = "results/qc/fastp/{sample}.html",
+        json = "results/qc/fastp/{sample}.json"
+    log:
+        "results/logs/fastp/{sample}.log"
+    threads: 8
+    shell:
+        """
+        fastp \
+        -i {input.r1} \
+        -I {input.r2} \
+        -o {output.r1_clean} \
+        -O {output.r2_clean} \
+        --merge \
+        --merged_out {output.merged} \
+        -h {output.html} \
+        -j {output.json} \
+        --detect_adapter_for_pe \
+        -p \
+        -w {threads} > {log} 2>&1
+        """
+
+# This rule runs MultiQC to aggregate all the fastp reports
+rule multiqc:
+    input:
+        expand("results/qc/fastp/{sample}.json", sample=SAMPLES)
+    output:
+        "results/qc/multiqc_report.html"
+    log:
+        "results/logs/multiqc.log"
+    shell:
+        """
+        multiqc results/qc/fastp/ -o results/qc/ > {log} 2>&1
+        """

@@ -1,0 +1,10 @@
+
+/// MultiQC 🔍 v1.31
+
+       file_search | Search path: /home/mjonir/f/projects/mosses/results/qc/fastp
+
+             fastp | Found 1 reports
+
+     write_results | Data        : results/qc/multiqc_data
+     write_results | Report      : results/qc/multiqc_report.html
+           multiqc | MultiQC complete

@@ -1,0 +1,55 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job         count
+--------  -------
+all             1
+fastp_qc        1
+multiqc         1
+total           3
+
+Select jobs to execute...
+
+[Wed Sep 24 00:26:33 2025]
+rule fastp_qc:
+    input: data/raw/SRR14771190_1.fastq.gz, data/raw/SRR14771190_2.fastq.gz
+    output: data/processed/SRR14771190_1.clean.fastq.gz, data/processed/SRR14771190_2.clean.fastq.gz, data/processed/SRR14771190.merged.fastq.gz, results/qc/fastp/SRR14771190.html, results/qc/fastp/SRR14771190.json
+    log: results/logs/fastp/SRR14771190.log
+    jobid: 2
+    reason: Missing output files: results/qc/fastp/SRR14771190.json
+    wildcards: sample=SRR14771190
+    threads: 4
+    resources: tmpdir=/tmp
+
+[Wed Sep 24 00:27:13 2025]
+Finished job 2.
+1 of 3 steps (33%) done
+Select jobs to execute...
+
+[Wed Sep 24 00:27:13 2025]
+rule multiqc:
+    input: results/qc/fastp/SRR14771190.json
+    output: results/qc/multiqc_report.html
+    log: results/logs/multiqc.log
+    jobid: 1
+    reason: Missing output files: results/qc/multiqc_report.html; Input files updated by another job: results/qc/fastp/SRR14771190.json
+    resources: tmpdir=/tmp
+
+[Wed Sep 24 00:27:16 2025]
+Finished job 1.
+2 of 3 steps (67%) done
+Select jobs to execute...
+
+[Wed Sep 24 00:27:16 2025]
+localrule all:
+    input: results/qc/multiqc_report.html
+    jobid: 0
+    reason: Input files updated by another job: results/qc/multiqc_report.html
+    resources: tmpdir=/tmp
+
+[Wed Sep 24 00:27:16 2025]
+Finished job 0.
+3 of 3 steps (100%) done
+Complete log: .snakemake/log/2025-09-24T002632.935074.snakemake.log

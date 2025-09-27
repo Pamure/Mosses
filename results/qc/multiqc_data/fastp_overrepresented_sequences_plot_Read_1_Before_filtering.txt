@@ -1,0 +1,2 @@
+Sample	Overrepresented sequences
+SRR14771190	10533.0

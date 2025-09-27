@@ -1,0 +1,2 @@
+Module	Section	Sample Name	Source
+fastp	all_sections	SRR14771190	/home/mjonir/f/projects/mosses/results/qc/fastp/SRR14771190.json

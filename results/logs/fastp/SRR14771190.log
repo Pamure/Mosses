@@ -1,0 +1,53 @@
+Detecting adapter sequence for read1...
+>I7_Nextera_Transposase_1 | >Trans2_rc | >I7_Nextera_Transposase_1 | >Trans2_rc
+CTGTCTCTTATACACATCTCCGAGCCCACGAGAC
+
+Detecting adapter sequence for read2...
+>I5_Nextera_Transposase_1 | >Trans1_rc | >I5_Nextera_Transposase_1 | >Trans1_rc
+CTGTCTCTTATACACATCTGACGCTGCCGACGA
+
+Read1 before filtering:
+total reads: 1231304
+total bases: 184695600
+Q20 bases: 181507208(98.2737%)
+Q30 bases: 176777374(95.7128%)
+Q40 bases: 154065095(83.4157%)
+
+Read2 before filtering:
+total reads: 1231304
+total bases: 184695600
+Q20 bases: 177080149(95.8768%)
+Q30 bases: 169077914(91.5441%)
+Q40 bases: 139914754(75.7542%)
+
+Merged and filtered:
+total reads: 566043
+total bases: 109797574
+Q20 bases: 108607756(98.9164%)
+Q30 bases: 106276514(96.7931%)
+Q40 bases: 92519398(84.2636%)
+
+Filtering result:
+reads passed filter: 2391320
+reads failed due to low quality: 71132
+reads failed due to too many N: 96
+reads failed due to too short: 60
+reads with adapter trimmed: 232392
+bases trimmed due to adapters: 8513280
+reads corrected by overlap analysis: 67298
+bases corrected by overlap analysis: 132967
+
+Duplication rate: 9.85549%
+
+Insert size peak (evaluated by paired-end reads): 243
+
+Read pairs merged: 566043
+% of original read pairs: 45.971%
+% in reads after filtering: 100%
+
+
+JSON report: results/qc/fastp/SRR14771190.json
+HTML report: results/qc/fastp/SRR14771190.html
+
+fastp -i data/raw/SRR14771190_1.fastq.gz -I data/raw/SRR14771190_2.fastq.gz -o data/processed/SRR14771190_1.clean.fastq.gz -O data/processed/SRR14771190_2.clean.fastq.gz --merge --merged_out data/processed/SRR14771190.merged.fastq.gz -h results/qc/fastp/SRR14771190.html -j results/qc/fastp/SRR14771190.json --detect_adapter_for_pe -p -w 4 
+fastp v1.0.1, time used: 40 seconds

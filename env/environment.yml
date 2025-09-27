@@ -1,0 +1,18 @@
+# In environment.yml
+name: mosses
+channels:
+  - pytorch
+  - conda-forge
+  - bioconda
+  - huggingface # ai model k github
+  - defaults
+dependencies:
+  - python=3.10
+  - pytorch     # meta ai shitt
+  - snakemake
+  - fastp
+  - multiqc
+  - biopython
+  - transformers # yeh dega dnabert
+  - datasets     # file.read  bde pythin code m ftt jayega to yeh usek HASHMAP
+  - accelerate   # saare gpu vs cpu k lueye
