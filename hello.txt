@@ -1,0 +1,592 @@
+MFDS Lab
+Math Foundations
+of Data Science
+Linear Algebra
+Matrix Operations
+SVD
+PCA
+Distributions
+Normal
+Binomial
+Poisson
+Uniform
+Exponential
+Hypothesis Testing
+Z-Test
+T-Test
+Chi-Square Test
+BTech CSE (DS) · Jamia Millia Islamia
+MFDS Lab
+Complete Reference
+All lab programs — matrices, SVD, PCA, five distributions, and three hypothesis tests — with clean Python code, key formulas, and memorization notes.
+
+numpy
+scipy
+matplotlib
+distributions
+hypothesis tests
+linear algebra
+01
+Matrix Operations
+Fundamental matrix operations using NumPy — creation, arithmetic, transpose, inverse, determinant, and eigenvalues. These form the backbone of every ML algorithm.
+
+🧠 Quick Memory
+np.array() — create matrix
+A @ B — matrix multiply (use @ not *)
+np.linalg.inv() — inverse; only for square, non-singular
+np.linalg.det() — determinant; if ≈ 0, matrix is singular
+A.T — transpose (rows become columns)
+np.linalg.eig() — eigenvalues & eigenvectors
+matrix_operations.py
+copy
+import numpy as np
+
+# ── Create matrices ──────────────────────────────
+A = np.array([[1, 2], [3, 4]])
+B = np.array([[5, 6], [7, 8]])
+
+# ── Arithmetic ───────────────────────────────────
+print("Addition:\n", A + B)
+print("Subtraction:\n", A - B)
+print("Element-wise multiply:\n", A * B)
+print("Matrix multiply (dot):\n", A @ B)   # or np.dot(A, B)
+
+# ── Properties ───────────────────────────────────
+print("Transpose:\n", A.T)
+print("Determinant:", np.linalg.det(A))
+print("Inverse:\n", np.linalg.inv(A))
+
+# ── Eigenvalues / Eigenvectors ───────────────────
+eigenvalues, eigenvectors = np.linalg.eig(A)
+print("Eigenvalues:", eigenvalues)
+print("Eigenvectors:\n", eigenvectors)
+
+# ── Useful constructors ──────────────────────────
+print("Identity (3×3):\n", np.eye(3))
+print("Zeros (2×3):\n", np.zeros((2, 3)))
+print("Rank:", np.linalg.matrix_rank(A))
+print("Trace (sum of diagonal):", np.trace(A))
+Addition, det(A) = -2.0, inv, eigenvalues, etc.
+02
+SVD — Singular Value Decomposition
+Any matrix A (m×n) can be factored as A = U · Σ · Vᵀ. Used in image compression, recommendation systems, and dimensionality reduction.
+
+Decomposition
+A = U · Σ · Vᵀ
+U = left singular vectors (m×m) | Σ = singular values diagonal | V = right singular vectors (n×n)
+🧠 Quick Memory
+np.linalg.svd(A) returns (U, s, Vt) — note s is 1-D array of singular values
+Reconstruct: np.diag(s) to make Σ, then U @ np.diag(s) @ Vt
+Larger singular value = more important component
+full_matrices=False gives compact/economy SVD
+svd.py
+copy
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ── Create a matrix ──────────────────────────────
+A = np.array([[1, 2, 3],
+              [4, 5, 6],
+              [7, 8, 9]])
+
+# ── Perform SVD ───────────────────────────────────
+U, s, Vt = np.linalg.svd(A)
+
+print("U (left singular vectors):\n", U)
+print("Singular values (s):", s)
+print("Vt (right singular vectors transposed):\n", Vt)
+
+# ── Reconstruct original matrix ───────────────────
+Sigma = np.zeros_like(A, dtype=np.float64)
+for i in range(len(s)):
+    Sigma[i, i] = s[i]
+
+A_reconstructed = U @ Sigma @ Vt
+print("\nReconstructed A:\n", np.round(A_reconstructed, 4))
+
+# ── Low-rank approximation (keep top-k singular values) ──
+k = 1   # keep only top-1 component
+A_approx = s[0] * np.outer(U[:, 0], Vt[0, :])
+print("\nRank-1 approximation:\n", np.round(A_approx, 2))
+
+# ── Plot singular values ─────────────────────────
+plt.figure(figsize=(5, 3))
+plt.bar(range(1, len(s)+1), s, color='steelblue')
+plt.title("Singular Values")
+plt.xlabel("Component")
+plt.ylabel("Value")
+plt.tight_layout()
+plt.show()
+U, Σ, Vᵀ matrices + bar chart of singular values
+03
+PCA — Principal Component Analysis
+PCA reduces dimensionality while preserving maximum variance. Steps: standardize → covariance matrix → eigen-decomposition → project data.
+
+Core Steps
+Cov = (1/n) · Xᵀ · X → eigen(Cov) → sort by λ → project
+Explained variance ratio = λᵢ / Σλ
+Mean-center first
+X -= X.mean(axis=0)
+Covariance
+np.cov(X.T)
+Sort eigenvectors
+descending eigenvalue
+Project
+X @ top_k_vectors
+pca.py
+copy
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ── Generate sample data (2D → project to 1D) ────
+np.random.seed(42)
+X = np.random.randn(100, 3)  # 100 samples, 3 features
+
+# ── Step 1: Standardize (zero mean) ──────────────
+X_mean = X - X.mean(axis=0)
+
+# ── Step 2: Covariance matrix ─────────────────────
+cov_matrix = np.cov(X_mean.T)       # shape: (3, 3)
+
+# ── Step 3: Eigen decomposition ───────────────────
+eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
+
+# ── Step 4: Sort by descending eigenvalue ─────────
+idx = np.argsort(eigenvalues)[::-1]
+eigenvalues  = eigenvalues[idx]
+eigenvectors = eigenvectors[:, idx]
+
+# ── Step 5: Select top-2 principal components ─────
+k = 2
+top_k = eigenvectors[:, :k]             # shape: (3, 2)
+X_pca = X_mean @ top_k                  # shape: (100, 2)
+
+# ── Explained Variance Ratio ──────────────────────
+evr = eigenvalues / eigenvalues.sum()
+print("Explained Variance Ratio:", np.round(evr, 3))
+print(f"Top-2 components explain {evr[:k].sum()*100:.1f}% variance")
+
+# ── Plot projected data ───────────────────────────
+plt.figure(figsize=(6, 4))
+plt.scatter(X_pca[:, 0], X_pca[:, 1], alpha=0.6, color='mediumpurple')
+plt.title("PCA — Data projected to 2 Components")
+plt.xlabel("PC 1")
+plt.ylabel("PC 2")
+plt.grid(alpha=0.3)
+plt.tight_layout()
+plt.show()
+Scatter plot of data projected onto PC1 & PC2
+04
+Normal Distribution
+The bell curve. Central to statistics via the Central Limit Theorem — any large sum of independent random variables approaches normal.
+
+PDF Formula
+f(x) = (1 / σ√(2π)) · exp(−(x−μ)² / 2σ²)
+μ = mean | σ = standard deviation | N(0,1) is standard normal
+Mean = Median = Mode
+μ (symmetric)
+68-95-99.7 Rule
+1σ / 2σ / 3σ
+Variance
+σ²
+scipy call
+stats.norm.pdf(x, μ, σ)
+normal_distribution.py
+copy
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+
+# ── Parameters ───────────────────────────────────
+mu    = 0      # mean
+sigma = 1      # standard deviation
+x     = np.linspace(-4, 4, 300)
+
+# ── PDF and CDF ───────────────────────────────────
+pdf = stats.norm.pdf(x, mu, sigma)
+cdf = stats.norm.cdf(x, mu, sigma)
+
+# ── Plot ──────────────────────────────────────────
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+
+axes[0].plot(x, pdf, color='royalblue', linewidth=2)
+axes[0].fill_between(x, pdf, alpha=0.15, color='royalblue')
+axes[0].set_title(f"Normal PDF  μ={mu}, σ={sigma}")
+axes[0].set_xlabel("x")
+axes[0].set_ylabel("Probability Density")
+axes[0].grid(alpha=0.3)
+
+axes[1].plot(x, cdf, color='darkorange', linewidth=2)
+axes[1].set_title("Normal CDF")
+axes[1].set_xlabel("x")
+axes[1].set_ylabel("Cumulative Probability")
+axes[1].grid(alpha=0.3)
+
+plt.suptitle("Normal Distribution N(0, 1)")
+plt.tight_layout()
+plt.show()
+
+# ── Generate random samples ───────────────────────
+samples = stats.norm.rvs(mu, sigma, size=1000)
+print(f"Sample mean: {samples.mean():.3f}, std: {samples.std():.3f}")
+PDF bell curve + CDF S-curve side by side
+05
+Binomial Distribution
+Models the number of successes in n independent trials with probability p. Example: flipping a coin 10 times.
+
+PMF Formula
+P(X = k) = C(n, k) · pᵏ · (1−p)^(n−k)
+Mean = n·p | Variance = n·p·(1−p)
+n
+number of trials
+p
+probability of success
+Discrete
+bar chart, not line
+scipy call
+stats.binom.pmf(k, n, p)
+binomial_distribution.py
+copy
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+
+# ── Parameters ───────────────────────────────────
+n = 20     # number of trials
+p = 0.5   # probability of success per trial
+k = np.arange(0, n + 1)   # possible outcomes: 0, 1, ..., n
+
+# ── PMF (Probability Mass Function) ───────────────
+pmf = stats.binom.pmf(k, n, p)
+
+# ── Stats ─────────────────────────────────────────
+mean, var = stats.binom.stats(n, p)
+print(f"Mean = {mean},  Variance = {var}")   # 10.0,  5.0
+
+# ── Plot ──────────────────────────────────────────
+plt.figure(figsize=(8, 4))
+plt.bar(k, pmf, color='goldenrod', edgecolor='white', linewidth=0.5)
+plt.title(f"Binomial Distribution  B(n={n}, p={p})")
+plt.xlabel("Number of Successes (k)")
+plt.ylabel("P(X = k)")
+plt.xticks(k)
+plt.grid(axis='y', alpha=0.3)
+plt.tight_layout()
+plt.show()
+
+# ── Probability queries ───────────────────────────
+print(f"P(X = 10) = {stats.binom.pmf(10, n, p):.4f}")
+print(f"P(X ≤ 12) = {stats.binom.cdf(12, n, p):.4f}")   # CDF
+Bar chart of P(X=k) for k = 0..20; symmetric at k=10
+06
+Poisson Distribution
+Models the number of events occurring in a fixed interval when events happen at a constant mean rate λ. Example: number of emails per hour.
+
+PMF Formula
+P(X = k) = (λᵏ · e^−λ) / k!
+Mean = λ | Variance = λ | Single parameter λ controls both!
+🧠 Key Distinction from Binomial
+Poisson: fixed rate λ, unbounded k (0, 1, 2, …∞)
+Binomial: fixed n trials, k bounded by n
+Rule of thumb: Binomial → Poisson when n is large and p is small (λ = n·p)
+poisson_distribution.py
+copy
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+
+# ── Parameters ───────────────────────────────────
+lambda_vals = [2, 5, 10]   # different rate parameters
+k = np.arange(0, 25)
+
+# ── Plot multiple λ values ────────────────────────
+colors = ['mediumpurple', 'mediumseagreen', 'coral']
+plt.figure(figsize=(9, 4))
+
+for lam, color in zip(lambda_vals, colors):
+    pmf = stats.poisson.pmf(k, lam)
+    plt.plot(k, pmf, marker='o', label=f'λ = {lam}',
+             color=color, linewidth=1.5, markersize=5)
+
+plt.title("Poisson Distribution for Different λ")
+plt.xlabel("k (number of events)")
+plt.ylabel("P(X = k)")
+plt.legend()
+plt.grid(alpha=0.3)
+plt.tight_layout()
+plt.show()
+
+# ── Probability queries ───────────────────────────
+lam = 5
+print(f"λ=5 | P(X=3) = {stats.poisson.pmf(3, lam):.4f}")
+print(f"λ=5 | P(X≤4) = {stats.poisson.cdf(4, lam):.4f}")
+print(f"Mean = Variance = {lam}")
+Line + dot chart for λ=2, 5, 10 — peak shifts right as λ grows
+07
+Uniform Distribution
+Every value in [a, b] is equally likely. The simplest continuous distribution — used for random number generation and simulations.
+
+PDF Formula
+f(x) = 1 / (b − a) for a ≤ x ≤ b, else 0
+Mean = (a+b)/2 | Variance = (b−a)² / 12
+uniform_distribution.py
+copy
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+
+# ── Parameters ───────────────────────────────────
+a, b = 2, 8    # lower and upper bounds
+x = np.linspace(0, 10, 300)
+
+# ── PDF: scipy uniform uses loc=a, scale=(b-a) ──
+pdf = stats.uniform.pdf(x, loc=a, scale=b - a)
+cdf = stats.uniform.cdf(x, loc=a, scale=b - a)
+
+# ── Stats ─────────────────────────────────────────
+mean = (a + b) / 2
+var  = (b - a) ** 2 / 12
+print(f"Mean = {mean},  Variance = {var:.4f}")
+
+# ── Plot PDF and CDF ─────────────────────────────
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+
+axes[0].plot(x, pdf, color='tomato', linewidth=2.5)
+axes[0].fill_between(x, pdf, alpha=0.15, color='tomato')
+axes[0].set_title(f"Uniform PDF  [a={a}, b={b}]")
+axes[0].set_xlabel("x")
+axes[0].set_ylabel("f(x)")
+axes[0].set_ylim(0, 0.3)
+axes[0].grid(alpha=0.3)
+
+axes[1].plot(x, cdf, color='crimson', linewidth=2.5)
+axes[1].set_title("Uniform CDF")
+axes[1].set_xlabel("x")
+axes[1].set_ylabel("F(x)")
+axes[1].grid(alpha=0.3)
+
+plt.suptitle(f"Uniform Distribution U({a}, {b})")
+plt.tight_layout()
+plt.show()
+
+# ── Generate samples ─────────────────────────────
+samples = np.random.uniform(a, b, size=1000)
+print(f"Sample mean: {samples.mean():.3f}")
+Flat rectangular PDF + linear ramp CDF
+08
+Exponential Distribution
+Models the time between events in a Poisson process. Memoryless property: P(X > s+t | X > s) = P(X > t). Example: time until next bus.
+
+PDF Formula
+f(x) = λ · e^(−λx) for x ≥ 0
+Mean = 1/λ | Variance = 1/λ² | scipy uses scale = 1/λ
+λ (rate)
+events per unit time
+scipy scale
+= 1/λ (mean)
+Memoryless
+key property
+Shape
+always decaying
+exponential_distribution.py
+copy
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+
+# ── Parameters (scipy uses scale = 1/lambda) ─────
+lambda_vals = [0.5, 1, 2]
+x = np.linspace(0, 6, 300)
+colors = ['limegreen', 'seagreen', 'darkgreen']
+
+# ── Plot PDFs for multiple λ ──────────────────────
+plt.figure(figsize=(9, 4))
+
+for lam, color in zip(lambda_vals, colors):
+    scale = 1 / lam          # scipy scale = mean = 1/λ
+    pdf   = stats.expon.pdf(x, scale=scale)
+    plt.plot(x, pdf, color=color, linewidth=2,
+             label=f'λ={lam}  (mean={scale:.1f})')
+
+plt.title("Exponential Distribution PDF")
+plt.xlabel("x (time)")
+plt.ylabel("f(x)")
+plt.legend()
+plt.grid(alpha=0.3)
+plt.tight_layout()
+plt.show()
+
+# ── Survival / CDF example ───────────────────────
+lam = 1
+print(f"P(X ≤ 2) = {stats.expon.cdf(2, scale=1/lam):.4f}")
+print(f"P(X > 2) = {1 - stats.expon.cdf(2, scale=1/lam):.4f}")
+
+# ── Generate samples ─────────────────────────────
+samples = np.random.exponential(scale=1/lam, size=1000)
+print(f"Sample mean: {samples.mean():.3f}  (expected: {1/lam})")
+Decaying curves for λ=0.5, 1, 2 — higher λ decays faster
+09
+Z-Test (One-Sample)
+Used when population σ is known and sample size is large (n ≥ 30). Tests whether sample mean differs significantly from population mean.
+
+Test Statistic
+z = (x̄ − μ₀) / (σ / √n)
+Reject H₀ if |z| > z_critical (typically 1.96 for α=0.05)
+Hypothesis	Meaning
+H₀: μ = μ₀	No significant difference from claimed mean
+H₁: μ ≠ μ₀	Significant difference exists (two-tailed)
+p-value < α	Reject H₀ (result is significant)
+p-value ≥ α	Fail to reject H₀
+z_test.py
+copy
+import numpy as np
+from scipy import stats
+
+# ── Problem setup ─────────────────────────────────
+# Claim: population mean = 50, σ = 10 (known)
+# Sample of 40 observations, observed mean = 53
+
+mu_0     = 50      # null hypothesis mean
+sigma    = 10      # known population std
+n        = 40      # sample size
+x_bar    = 53      # sample mean
+alpha    = 0.05    # significance level
+
+# ── Compute Z-statistic ───────────────────────────
+se = sigma / np.sqrt(n)             # standard error
+z  = (x_bar - mu_0) / se
+
+# ── Two-tailed p-value ────────────────────────────
+p_value = 2 * (1 - stats.norm.cdf(abs(z)))
+
+# ── Critical value for α = 0.05 ──────────────────
+z_critical = stats.norm.ppf(1 - alpha / 2)   # 1.96
+
+print(f"Z-statistic : {z:.4f}")
+print(f"p-value     : {p_value:.4f}")
+print(f"Z-critical  : ±{z_critical:.4f}")
+print()
+
+if p_value < alpha:
+    print("Result: REJECT H₀ — significant difference from μ=50")
+else:
+    print("Result: FAIL TO REJECT H₀ — no significant difference")
+Z = 1.8974, p = 0.0578 → Fail to reject H₀ (just above 0.05)
+10
+T-Test
+Used when population σ is unknown (estimated from sample) or sample size is small (n < 30). Follows t-distribution with n−1 degrees of freedom.
+
+Test Statistic
+t = (x̄ − μ₀) / (s / √n)
+s = sample std | df = n − 1 | scipy: stats.ttest_1samp(data, popmean)
+🧠 Z vs T — When to use which?
+Use Z-test: σ known AND n ≥ 30
+Use T-test: σ unknown OR n < 30 (use sample std instead)
+As n → ∞, t-distribution → normal distribution
+t_test.py
+copy
+import numpy as np
+from scipy import stats
+
+# ── One-sample T-test ─────────────────────────────
+np.random.seed(0)
+data  = np.random.normal(loc=52, scale=8, size=25)  # n=25, small
+mu_0  = 50
+alpha = 0.05
+
+# ── Manual computation ────────────────────────────
+x_bar = data.mean()
+s     = data.std(ddof=1)      # sample std (ddof=1)
+n     = len(data)
+se    = s / np.sqrt(n)
+t_stat = (x_bar - mu_0) / se
+print(f"Manual t = {t_stat:.4f}")
+
+# ── Using scipy (one-liner!) ──────────────────────
+t, p = stats.ttest_1samp(data, mu_0)
+print(f"scipy  t = {t:.4f},  p-value = {p:.4f}")
+
+t_critical = stats.t.ppf(1 - alpha/2, df=n-1)
+print(f"t-critical = ±{t_critical:.4f}  (df={n-1})")
+
+if p < alpha:
+    print("Result: REJECT H₀")
+else:
+    print("Result: FAIL TO REJECT H₀")
+
+# ── Two-sample T-test (independent groups) ────────
+print("\n── Two-sample T-test ──")
+group_a = np.random.normal(70, 10, 30)
+group_b = np.random.normal(75, 10, 30)
+t2, p2  = stats.ttest_ind(group_a, group_b)
+print(f"t = {t2:.4f},  p = {p2:.4f}")
+t-statistic, p-value, decision; also two-sample test
+11
+Chi-Square Test (χ²)
+Used for categorical data. Two main uses: (1) Goodness-of-fit — does observed data follow an expected distribution? (2) Independence — are two categorical variables related?
+
+Test Statistic
+χ² = Σ [ (Oᵢ − Eᵢ)² / Eᵢ ]
+O = observed count | E = expected count | df = categories − 1
+Goodness of Fit
+1D observed vs expected
+Independence
+2D contingency table
+df (GoF)
+k − 1
+df (indep.)
+(r−1)(c−1)
+chi_square_test.py
+copy
+import numpy as np
+from scipy import stats
+
+# ════════════════════════════════════════════════
+# PART A: Goodness-of-Fit Test
+# Question: Is a die fair?
+# ════════════════════════════════════════════════
+observed  = np.array([18, 22, 20, 15, 17, 28])  # rolls of 1-6
+expected  = np.array([20, 20, 20, 20, 20, 20])  # fair die: equal
+alpha     = 0.05
+
+chi2_stat, p_val = stats.chisquare(observed, expected)
+print("── Goodness-of-Fit (Die Fairness) ──")
+print(f"χ² = {chi2_stat:.4f},  p = {p_val:.4f}")
+
+if p_val < alpha:
+    print("Reject H₀ — Die is NOT fair")
+else:
+    print("Fail to reject H₀ — Die appears fair")
+
+# ════════════════════════════════════════════════
+# PART B: Chi-Square Test of Independence
+# Question: Is gender independent of product preference?
+# ════════════════════════════════════════════════
+print("\n── Independence Test (2×2 Contingency Table) ──")
+
+# Rows: Male / Female   |   Cols: Product A / Product B
+contingency = np.array([[30, 10],
+                          [15, 25]])
+
+chi2, p, dof, expected_freq = stats.chi2_contingency(contingency)
+print(f"χ² = {chi2:.4f},  p = {p:.4f},  df = {dof}")
+print("Expected frequencies:\n", np.round(expected_freq, 2))
+
+if p < alpha:
+    print("Reject H₀ — Variables are DEPENDENT")
+else:
+    print("Fail to reject H₀ — Variables are INDEPENDENT")
+GoF: χ²=4.9, p≈0.43 (fair die) | Independence: significant dependence
+REF
+Quick Reference — All Tests & Distributions
+Topic	scipy call	Key param	When to use
+Normal	stats.norm.pdf(x, μ, σ)	μ, σ	Continuous, symmetric, CLT
+Binomial	stats.binom.pmf(k, n, p)	n, p	Fixed trials, 2 outcomes
+Poisson	stats.poisson.pmf(k, λ)	λ	Count events in interval
+Uniform	stats.uniform.pdf(x, a, b-a)	a, b	Equal probability in range
+Exponential	stats.expon.pdf(x, scale=1/λ)	λ	Time between events
+Z-test	stats.norm.cdf / ppf	σ known	n≥30, σ known
+T-test	stats.ttest_1samp(data, μ₀)	df=n-1	n<30 or σ unknown
+Chi-Square	stats.chisquare / chi2_contingency	df=k-1	Categorical / frequency data
+SVD	np.linalg.svd(A)	→ U,s,Vt	Decompose any matrix
+PCA	np.linalg.eig(np.cov(X.T))	top-k	Dimensionality reduction
